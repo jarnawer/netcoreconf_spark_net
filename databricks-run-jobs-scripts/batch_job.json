@@ -1,0 +1,28 @@
+{
+	"creator_user_name": "jarnau@kabel.es",
+	"name": "IMDB Movie Dataset Job",
+	"new_cluster": {
+		"spark_version": "6.6.x-scala2.11",
+		"enable_elastic_disk": true,
+		"node_type_id": "Standard_DS3_v2",
+		"num_workers": 2,
+		"init_scripts": {
+			"dbfs": {
+				"destination": "dbfs:/spark-dotnet/db-init.sh"
+			}
+		}
+	},
+	"timeout_seconds": 7200,
+	"max_retries": 1,
+	"spark_submit_task": {
+		"parameters": [
+			"--class",
+			"org.apache.spark.deploy.dotnet.DotnetRunner",
+			"dbfs:/dotnet-jobs/microsoft-spark-2.4.x-0.12.1.jar",
+			"dbfs:/dotnet-jobs/HelloSparkExamples.zip",
+			"HelloSparkBatch",
+			"wasbs://staging@tempdatasetsa.blob.core.windows.net/movie_metadata.csv",
+			"wasbs://raw@tempdatasetsa.blob.core.windows.net"
+		]
+	}
+}

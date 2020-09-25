@@ -1,0 +1,30 @@
+{
+	"creator_user_name": "jarnau@kabel.es",
+	"name": "AZ3166 Streaming Job",
+	"new_cluster": {
+		"spark_version": "6.6.x-scala2.11",
+		"enable_elastic_disk": true,
+		"node_type_id": "Standard_DS3_v2",
+		"num_workers": 2,
+		"init_scripts": {
+			"dbfs": {
+				"destination": "dbfs:/spark-dotnet/db-init.sh"
+			}
+		}
+	},
+	"timeout_seconds": 7200,
+	"max_retries": 1,
+	"spark_submit_task": {
+		"parameters": [
+			"--packages",
+			"com.microsoft.azure:azure-eventhubs-spark_2.11:2.3.13",
+			"--class",
+			"org.apache.spark.deploy.dotnet.DotnetRunner",
+			"dbfs:/dotnet-jobs/microsoft-spark-2.4.x-0.12.1.jar",
+			"dbfs:/dotnet-jobs/HelloSparkExamples.zip",
+			"HelloSparkStreaming",
+			"wasbs://raw@tempdatasetsa.blob.core.windows.net/streaming",
+			"wasbs://raw@tempdatasetsa.blob.core.windows.net/streaming_checkpoint"
+		]
+	}
+}
