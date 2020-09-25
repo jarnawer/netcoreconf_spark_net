@@ -1,0 +1,10 @@
+trigger:
+- none
+
+resources:
+  pipelines:
+  - pipeline: myappbuild  # Name of the pipeline resource
+    source: myapp-build-pipeline # Name of the triggering pipeline
+    trigger: 
+      branches:
+      - master

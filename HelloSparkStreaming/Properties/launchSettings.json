@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "HelloSparkStreaming": {
+      "commandName": "Project",
+      "commandLineArgs": "wasbs://raw@tempdatasetsa.blob.core.windows.net/streaming"
+    }
+  }
+}

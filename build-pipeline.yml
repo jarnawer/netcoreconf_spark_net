@@ -1,0 +1,86 @@
+trigger:
+    branches:
+        include:
+            - master
+
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    pool: 
+      vmImage: 'ubuntu-latest'
+    steps:
+      - task: UseDotNet@2
+        displayName: "Net Core 3.1.x"
+        inputs:
+            version: '3.1.x'
+            packageType: sdk
+
+      - script: dotnet build --configuration "Release"
+        displayName: "Dotnet build Release"
+      
+      - task: DotNetCoreCLI@2
+        displayName: "Publish"
+        inputs:
+            command: publish
+            publishWebProjects: false
+            arguments: "-r linux-x64 --configuration Release --output $(Build.ArtifactStagingDirectory)"
+            zipAfterPublish: true
+
+      - script: |
+            cp HelloSpark/bin/Release/netcoreapp3.1/microsoft-spark-2.4.x-0.12.1.jar $(Build.ArtifactStagingDirectory)
+            cp db-init.sh $(Build.ArtifactStagingDirectory)
+            cp install-worker.sh $(Build.ArtifactStagingDirectory)
+            cd $(Build.ArtifactStagingDirectory)
+            mv a.zip HelloSparkExamples.zip
+        displayName: Copy files to Artifact Directory
+
+      - task: PublishBuildArtifacts@1
+        displayName: "Upload Artifacts"
+        inputs:
+            PathtoPublish: "$(Build.ArtifactStagingDirectory)"
+            ArtifactName: "drop"
+
+- stage: Deploy_Artifacts
+  condition: succeeded()
+  jobs:
+    - job:
+      pool:
+        vmImage: 'windows-2019'
+      steps:
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: 'drop'
+          downloadPath: '$(System.ArtifactsDirectory)'
+      - task: databricksDeployDBFSFilesTask@0
+        inputs:
+          authMethod: 'bearer'
+          region: 'westeurope'
+          LocalRootFolder: '$(System.ArtifactsDirectory)/drop'
+          FilePattern: '*.zip'
+          TargetLocation: '/dotnet-jobs'
+          bearerToken: your-databricks-token
+        displayName: Databricks - Deploy Spark Applications Zip
+      
+      - task: databricksDeployDBFSFilesTask@0
+        inputs:
+          authMethod: 'bearer'
+          region: 'westeurope'
+          LocalRootFolder: '$(System.ArtifactsDirectory)/drop'
+          FilePattern: '*.jar'
+          TargetLocation: '/dotnet-jobs'
+          bearerToken: your-databricks-token
+        displayName: Databricks - Deploy Microsoft Spark Jar
+      - task: databricksDeployDBFSFilesTask@0
+        inputs:
+          authMethod: 'bearer'
+          region: 'westeurope'
+          LocalRootFolder: '$(System.ArtifactsDirectory)/drop'
+          FilePattern: '*.sh'
+          TargetLocation: '/spark-dotnet'
+          bearerToken: your-databricks-token
+        displayName: Databricks - Deploy Cluster Initialization Scripts
+
+              

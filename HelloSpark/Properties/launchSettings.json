@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "HelloSparkBatch": {
+      "commandName": "Project",
+      "commandLineArgs": "wasbs://staging@tempdatasetsa.blob.core.windows.net/movie_metadata.csv wasbs:/raw@tempdatasetsa.blob.core.windows.net/"
+    }
+  }
+}
